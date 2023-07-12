@@ -4,12 +4,12 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/mcdull-kk/pkg/log"
+	"github.com/mcdull-kk/pkg/log/zap"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestRescue(t *testing.T) {
-	log.InitLogger("/dev/stdout", "debug")
+	zap.NewLogger("/dev/stdout", "debug")
 	var count int32
 	assert.NotPanics(t, func() {
 		defer Recover(func() {

@@ -120,7 +120,7 @@ func startAgent(c Config) error {
 	if len(c.Endpoint) > 0 {
 		exp, err := createExporter(c)
 		if err != nil {
-			log.Err(err)
+			log.Error(err)
 			return err
 		}
 
