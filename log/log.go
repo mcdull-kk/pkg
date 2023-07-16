@@ -2,112 +2,55 @@ package log
 
 import (
 	"fmt"
-	"strings"
+	"log"
+	"sync"
 )
-
-// Level is a logger level.
-type Level int8
-
-const (
-	// DebugLevel is logger debug level.
-	DebugLevel Level = iota - 1
-	InfoLevel
-	WarnLevel
-	ErrorLevel
-	FatalLevel
-)
-
-func (l Level) String() string {
-	switch l {
-	case DebugLevel:
-		return "DEBUG"
-	case InfoLevel:
-		return "INFO"
-	case WarnLevel:
-		return "WARN"
-	case ErrorLevel:
-		return "ERROR"
-	case FatalLevel:
-		return "FATAL"
-	default:
-		return ""
-	}
-}
-
-// ParseLevel parses a level string into a logger Level value.
-func ParseLevel(s string) Level {
-	switch strings.ToUpper(s) {
-	case "DEBUG":
-		return DebugLevel
-	case "INFO":
-		return InfoLevel
-	case "WARN":
-		return WarnLevel
-	case "ERROR":
-		return ErrorLevel
-	case "FATAL":
-		return FatalLevel
-	}
-	return InfoLevel
-}
-
-// Logger is a logger interface.
-type Logger interface {
-	Log(level Level, keyvals ...interface{}) error
-	Close() error
-}
-
-// Option is log option.
-type Option func(*logger)
-
-// WithSprint with sprint
-func WithSprint(sprint func(...interface{}) string) Option {
-	return func(l *logger) {
-		l.sprint = sprint
-	}
-}
-
-// WithSprintf with sprintf
-func WithSprintf(sprintf func(format string, a ...interface{}) string) Option {
-	return func(l *logger) {
-		l.sprintf = sprintf
-	}
-}
 
 var (
-	l *logger
+	global = &logger{}
 )
 
+func init() {
+	global.SetLogger(NewStdLogger(log.Writer()))
+}
+
 type logger struct {
+	lock sync.Mutex
 	Logger
-	sprint  func(...interface{}) string
-	sprintf func(format string, a ...interface{}) string
 }
 
-func NewLogger(log Logger, opts ...Option) {
-	l = &logger{
-		Logger:  log,
-		sprint:  fmt.Sprint,
-		sprintf: fmt.Sprintf,
-	}
-	for _, o := range opts {
-		o(l)
-	}
+func (l *logger) SetLogger(logger Logger) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	l.Logger = logger
 }
 
-func Debug(a ...interface{})                 { _ = l.Log(DebugLevel, l.sprint(a...)) }
-func Debugf(format string, a ...interface{}) { _ = l.Log(DebugLevel, l.sprintf(format, a...)) }
-func Debugw(keyvals ...interface{})          { _ = l.Log(DebugLevel, keyvals...) }
-func Info(a ...interface{})                  { _ = l.Log(InfoLevel, l.sprint(a...)) }
-func Infof(format string, a ...interface{})  { _ = l.Log(InfoLevel, l.sprintf(format, a...)) }
-func Infow(keyvals ...interface{})           { _ = l.Log(InfoLevel, keyvals...) }
-func Warn(a ...interface{})                  { _ = l.Log(WarnLevel, l.sprint(a...)) }
-func Warnf(format string, a ...interface{})  { _ = l.Log(WarnLevel, l.sprintf(format, a...)) }
-func Warnw(keyvals ...interface{})           { _ = l.Log(WarnLevel, keyvals...) }
-func Error(a ...interface{})                 { _ = l.Log(ErrorLevel, l.sprint(a...)) }
-func Errorf(format string, a ...interface{}) { _ = l.Log(ErrorLevel, l.sprintf(format, a...)) }
-func Errorw(keyvals ...interface{})          { _ = l.Log(ErrorLevel, keyvals...) }
-func Fatal(a ...interface{})                 { _ = l.Log(FatalLevel, l.sprint(a...)) }
-func Fatalf(format string, a ...interface{}) { _ = l.Log(FatalLevel, l.sprintf(format, a...)) }
-func Fatalw(keyvals ...interface{})          { _ = l.Log(FatalLevel, keyvals...) }
-func Close()                                 { _ = l.Close() }
+func SetLogger(logger Logger) {
+	global.SetLogger(logger)
+}
+
+func GetLogger() Logger {
+	return global
+}
+
+func Debug(a ...any) { _ = global.Log(DebugLevel, fmt.Sprint(a...)) }
+func Debugf(format string, a ...any) {
+	_ = global.Log(DebugLevel, fmt.Sprintf(format, a...))
+}
+func Debugw(keyvals ...any)         { _ = global.Log(DebugLevel, keyvals...) }
+func Info(a ...any)                 { _ = global.Log(InfoLevel, fmt.Sprint(a...)) }
+func Infof(format string, a ...any) { _ = global.Log(InfoLevel, fmt.Sprintf(format, a...)) }
+func Infow(keyvals ...any)          { _ = global.Log(InfoLevel, keyvals...) }
+func Warn(a ...any)                 { _ = global.Log(WarnLevel, fmt.Sprint(a...)) }
+func Warnf(format string, a ...any) { _ = global.Log(WarnLevel, fmt.Sprintf(format, a...)) }
+func Warnw(keyvals ...any)          { _ = global.Log(WarnLevel, keyvals...) }
+func Error(a ...any)                { _ = global.Log(ErrorLevel, fmt.Sprint(a...)) }
+func Errorf(format string, a ...any) {
+	_ = global.Log(ErrorLevel, fmt.Sprintf(format, a...))
+}
+func Errorw(keyvals ...any) { _ = global.Log(ErrorLevel, keyvals...) }
+func Fatal(a ...any)        { _ = global.Log(FatalLevel, fmt.Sprint(a...)) }
+func Fatalf(format string, a ...any) {
+	_ = global.Log(FatalLevel, fmt.Sprintf(format, a...))
+}
+func Fatalw(keyvals ...any) { _ = global.Log(FatalLevel, keyvals...) }

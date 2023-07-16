@@ -7,43 +7,40 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	_    log.Logger = (*Logger)(nil)
-	_log *Logger
-)
+var _ log.Logger = (*logrusLogger)(nil)
 
-type Logger struct {
+type logrusLogger struct {
 	log *logrus.Logger
 }
 
-func NewLogger(fileName string, level string) log.Logger {
+func NewLogrusLogger(fileName string, level string) log.Logger {
 	if level == "" {
 		level = "info"
 	}
+	var logger *logrusLogger
 	lv, _ := logrus.ParseLevel(level)
 	if fileName != "/dev/stdout" {
 
 	} else {
-		_log = &Logger{
+		logger = &logrusLogger{
 			log: &logrus.Logger{
 				Level: lv,
 				Out:   os.Stdout,
 			},
 		}
 	}
-	_log.log.Formatter = &logrus.JSONFormatter{}
-	log.NewLogger(_log)
-	return _log
+	logger.log.Formatter = &logrus.JSONFormatter{}
+	return logger
 }
 
-func (l *Logger) Close() error {
+func (l *logrusLogger) Close() error {
 	return nil
 }
 
-func (l *Logger) Log(level log.Level, keyvals ...interface{}) (err error) {
+func (l *logrusLogger) Log(level log.Level, keyvals ...any) (err error) {
 	var (
 		logrusLevel logrus.Level
-		fields      logrus.Fields = make(map[string]interface{})
+		fields      logrus.Fields = make(map[string]any)
 		msg         string
 	)
 

@@ -7,7 +7,7 @@ import (
 )
 
 func TestLog(t *testing.T) {
-	NewLogger("/dev/stdout", "debug")
-
+	l := NewLogrusLogger("/dev/stdout", "debug")
+	log.SetLogger(l)
 	log.Debug("adsf")
 }

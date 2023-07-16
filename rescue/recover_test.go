@@ -9,7 +9,7 @@ import (
 )
 
 func TestRescue(t *testing.T) {
-	zap.NewLogger("/dev/stdout", "debug")
+	zap.NewZapLogger("/dev/stdout", "debug")
 	var count int32
 	assert.NotPanics(t, func() {
 		defer Recover(func() {

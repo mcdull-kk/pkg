@@ -3,7 +3,6 @@ package zap
 import (
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/mcdull-kk/pkg/log"
@@ -14,17 +13,13 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var (
-	_              log.Logger = (*Logger)(nil)
-	_log           *Logger
-	initZapLogOnce sync.Once
-)
+var _ log.Logger = (*ZapLogger)(nil)
 
-type Logger struct {
+type ZapLogger struct {
 	log *zap.SugaredLogger
 }
 
-func (l *Logger) Log(level log.Level, args ...interface{}) error {
+func (l *ZapLogger) Log(level log.Level, args ...any) error {
 	switch level {
 	case log.DebugLevel:
 		l.log.Debug(args...)
@@ -40,18 +35,11 @@ func (l *Logger) Log(level log.Level, args ...interface{}) error {
 	return nil
 }
 
-func (l *Logger) Close() error {
+func (l *ZapLogger) Close() error {
 	return l.log.Sync()
 }
 
-func NewLogger(fileName string, level string) *Logger {
-	initZapLogOnce.Do(func() {
-		initZapLogger(fileName, level)
-	})
-	return _log
-}
-
-func initZapLogger(fileName string, level string) {
+func NewZapLogger(fileName string, level string) *ZapLogger {
 	if level == "" {
 		level = "info"
 	}
@@ -74,10 +62,10 @@ func initZapLogger(fileName string, level string) {
 		},
 		lv,
 	)
-	_log = &Logger{
+	logger := &ZapLogger{
 		log: zap.New(core).WithOptions(zap.AddCallerSkip(1), zap.AddCaller()).Sugar(),
 	}
-	log.NewLogger(_log)
+	return logger
 }
 
 type EncodeWrapper struct {
