@@ -150,3 +150,29 @@ func TestBadPubKey(t *testing.T) {
 	_, err := NewRsaEncrypter([]byte("foo"))
 	assert.Equal(t, ErrPublicKey, err)
 }
+
+func TestJsonMarshal(t *testing.T) {
+	var v = struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}{
+		Name: "John",
+		Age:  30,
+	}
+
+	bs, err := GetCodec(JsonName).Marshal(v)
+	assert.Nil(t, err)
+	assert.Equal(t, `{"name":"John","age":30}`, string(bs))
+}
+
+func TestJsonUnmarshal(t *testing.T) {
+	const s = `{"name":"John","age":30}`
+	var v struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+	err := GetCodec(JsonName).Unmarshal([]byte(s), &v)
+	assert.Nil(t, err)
+	assert.Equal(t, "John", v.Name)
+	assert.Equal(t, 30, v.Age)
+}

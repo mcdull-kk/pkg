@@ -9,17 +9,19 @@ import (
 	"strings"
 
 	"github.com/go-playground/form/v4"
+	"github.com/vmihailenco/msgpack/v5"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"gopkg.in/yaml.v2"
 )
 
 const (
-	xmlName   = "xml"
-	protoName = "proto"
-	jsonName  = "json"
-	yamlName  = "yaml"
-	formName  = "x-www-form-urlencoded"
+	XmlName     = "xml"
+	ProtoName   = "proto"
+	JsonName    = "json"
+	YamlName    = "yaml"
+	MsgpackName = "msgpack"
+	FormName    = "x-www-form-urlencoded"
 )
 
 func init() {
@@ -29,6 +31,7 @@ func init() {
 	registerCodec(jsonCodec{})
 	registerCodec(protoCodec{})
 	registerCodec(yamlCodec{})
+	registerCodec(msgpackCodec{})
 	registerCodec(formCodec{encoder: formEncoder, decoder: formDecoder})
 }
 
@@ -85,11 +88,12 @@ func GetCodec(contentSubtype string) Codec {
 type codec struct{}
 
 type (
-	xmlCodec   codec
-	jsonCodec  codec
-	protoCodec codec
-	yamlCodec  codec
-	formCodec  struct {
+	xmlCodec     codec
+	jsonCodec    codec
+	protoCodec   codec
+	yamlCodec    codec
+	msgpackCodec codec
+	formCodec    struct {
 		encoder *form.Encoder
 		decoder *form.Decoder
 	}
@@ -105,7 +109,7 @@ func (xmlCodec) Unmarshal(data []byte, v interface{}) error {
 }
 
 func (xmlCodec) Name() string {
-	return xmlName
+	return XmlName
 }
 
 // jsonCodec
@@ -142,7 +146,7 @@ func (jsonCodec) Unmarshal(data []byte, v interface{}) error {
 }
 
 func (jsonCodec) Name() string {
-	return jsonName
+	return JsonName
 }
 
 //protoCodec
@@ -159,7 +163,7 @@ func (protoCodec) Unmarshal(data []byte, v interface{}) error {
 }
 
 func (protoCodec) Name() string {
-	return protoName
+	return ProtoName
 }
 
 func getProtoMessage(v interface{}) (proto.Message, error) {
@@ -185,7 +189,21 @@ func (yamlCodec) Unmarshal(data []byte, v interface{}) error {
 }
 
 func (yamlCodec) Name() string {
-	return yamlName
+	return YamlName
+}
+
+// msgpackCodec
+
+func (msgpackCodec) Marshal(v interface{}) ([]byte, error) {
+	return msgpack.Marshal(v)
+}
+
+func (msgpackCodec) Unmarshal(data []byte, v interface{}) error {
+	return msgpack.Unmarshal(data, v)
+}
+
+func (msgpackCodec) Name() string {
+	return MsgpackName
 }
 
 //formCodec
@@ -224,5 +242,5 @@ func (c formCodec) Unmarshal(data []byte, v interface{}) error {
 }
 
 func (formCodec) Name() string {
-	return formName
+	return FormName
 }

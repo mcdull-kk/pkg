@@ -28,6 +28,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
+require github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+
 require (
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -46,6 +48,7 @@ require (
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
+	github.com/vmihailenco/msgpack/v5 v5.3.5
 	github.com/yuin/gopher-lua v1.1.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.16.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.16.0 // indirect
