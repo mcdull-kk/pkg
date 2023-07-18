@@ -13,13 +13,13 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var _ log.Logger = (*ZapLogger)(nil)
+var _ log.Logger = (*zapLogger)(nil)
 
-type ZapLogger struct {
+type zapLogger struct {
 	log *zap.SugaredLogger
 }
 
-func (l *ZapLogger) Log(level log.Level, args ...any) error {
+func (l *zapLogger) Log(level log.Level, args ...any) error {
 	switch level {
 	case log.DebugLevel:
 		l.log.Debug(args...)
@@ -35,11 +35,11 @@ func (l *ZapLogger) Log(level log.Level, args ...any) error {
 	return nil
 }
 
-func (l *ZapLogger) Close() error {
+func (l *zapLogger) Close() error {
 	return l.log.Sync()
 }
 
-func NewZapLogger(fileName string, level string) *ZapLogger {
+func NewZapLogger(fileName string, level string) *zapLogger {
 	if level == "" {
 		level = "info"
 	}
@@ -62,7 +62,7 @@ func NewZapLogger(fileName string, level string) *ZapLogger {
 		},
 		lv,
 	)
-	logger := &ZapLogger{
+	logger := &zapLogger{
 		log: zap.New(core).WithOptions(zap.AddCallerSkip(1), zap.AddCaller()).Sugar(),
 	}
 	return logger
