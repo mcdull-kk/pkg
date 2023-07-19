@@ -7,6 +7,7 @@ require (
 	github.com/apolloconfig/agollo/v4 v4.3.0
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang/protobuf v1.5.3
+	github.com/imdario/mergo v0.3.13
 	github.com/pelletier/go-toml/v2 v2.0.8
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.16.0

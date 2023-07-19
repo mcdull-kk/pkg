@@ -33,6 +33,10 @@ func GetLogger() Logger {
 	return global
 }
 
+func GetGlobalLogger() *logger {
+	return global
+}
+
 func Debug(a ...any) { _ = global.Log(DebugLevel, fmt.Sprint(a...)) }
 func Debugf(format string, a ...any) {
 	_ = global.Log(DebugLevel, fmt.Sprintf(format, a...))
@@ -54,3 +58,18 @@ func Fatalf(format string, a ...any) {
 	_ = global.Log(FatalLevel, fmt.Sprintf(format, a...))
 }
 func Fatalw(keyvals ...any) { _ = global.Log(FatalLevel, keyvals...) }
+
+func (l *logger) Debug(a ...any)                 { Debug(a...) }
+func (l *logger) Debugf(format string, a ...any) { Debugf(format, a...) }
+func (l *logger) Info(keyvals ...any)            { Debugw(keyvals...) }
+func (l *logger) Infof(format string, a ...any)  { Infof(format, a...) }
+func (l *logger) Infow(keyvals ...any)           { Infow(keyvals...) }
+func (l *logger) Warn(a ...any)                  { Warn(a...) }
+func (l *logger) Warnf(format string, a ...any)  { Warnf(format, a...) }
+func (l *logger) Warnw(keyvals ...any)           { Warnw(keyvals...) }
+func (l *logger) Error(a ...any)                 { Error(a...) }
+func (l *logger) Errorf(format string, a ...any) { Errorf(format, a...) }
+func (l *logger) Errorw(keyvals ...any)          { Errorw(keyvals...) }
+func (l *logger) Fatal(a ...any)                 { Fatal(a...) }
+func (l *logger) Fatalf(format string, a ...any) { Fatalf(format, a...) }
+func (l *logger) Fatalw(keyvals ...any)          { Fatalw(keyvals...) }

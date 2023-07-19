@@ -7,8 +7,8 @@ import (
 	"github.com/apolloconfig/agollo/v4/constant"
 	apolloconfig "github.com/apolloconfig/agollo/v4/env/config"
 	"github.com/apolloconfig/agollo/v4/extension"
-	"google.golang.org/grpc/encoding"
 
+	"github.com/mcdull-kk/pkg/codec"
 	"github.com/mcdull-kk/pkg/config"
 	"github.com/mcdull-kk/pkg/log"
 )
@@ -69,12 +69,15 @@ func NewSource(originConfig bool, opts ...Option) config.Source {
 		o(op)
 	}
 
+	agollo.SetLogger(log.GetGlobalLogger())
+
 	client, err := agollo.StartWithConfig(func() (*apolloconfig.AppConfig, error) {
 		return op, nil
 	})
 	if err != nil {
 		panic(err)
 	}
+
 	opt := &options{op, originConfig}
 	if opt.originConfig {
 		extension.AddFormatParser(constant.JSON, &extParser{})
@@ -122,11 +125,7 @@ func (e *apollo) Load() (kv []*config.KeyValue, err error) {
 }
 
 func (e *apollo) Watch() (config.Watcher, error) {
-	w, err := newWatcher(e)
-	if err != nil {
-		return nil, err
-	}
-	return w, nil
+	return newWatcher(e), nil
 }
 
 func (e *apollo) getConfig(ns string) (*config.KeyValue, error) {
@@ -137,8 +136,8 @@ func (e *apollo) getConfig(ns string) (*config.KeyValue, error) {
 		return true
 	})
 	f := format(ns)
-	codec := encoding.GetCodec(f)
-	val, err := codec.Marshal(next)
+	code := codec.GetCodec(f)
+	val, err := code.Marshal(next)
 	if err != nil {
 		return nil, err
 	}
@@ -176,10 +175,10 @@ func format(ns string) string {
 	return suffix
 }
 
-// resolve convert kv pair into one map[string]interface{} by split key into different
+// resolve convert kv pair into one map[string]any by split key into different
 // map level. such as: app.name = "application" => map[app][name] = "application"
-func resolve(key string, value interface{}, target map[string]interface{}) {
-	// expand key "aaa.bbb" into map[aaa]map[bbb]interface{}
+func resolve(key string, value any, target map[string]any) {
+	// expand key "aaa.bbb" into map[aaa]map[bbb]any
 	keys := strings.Split(key, ".")
 	last := len(keys) - 1
 	cursor := target
@@ -194,7 +193,7 @@ func resolve(key string, value interface{}, target map[string]interface{}) {
 		v, ok := cursor[k]
 		if !ok {
 			// create a new map
-			deeper := make(map[string]interface{})
+			deeper := make(map[string]any)
 			cursor[k] = deeper
 			cursor = deeper
 			continue
@@ -202,7 +201,7 @@ func resolve(key string, value interface{}, target map[string]interface{}) {
 
 		// current exists, then check existing value type, if it's not map
 		// that means duplicate keys, and at least one is not map instance.
-		if cursor, ok = v.(map[string]interface{}); !ok {
+		if cursor, ok = v.(map[string]any); !ok {
 			log.Warnf("duplicate key: %v\n", strings.Join(keys[:i+1], "."))
 			break
 		}
