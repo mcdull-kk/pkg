@@ -32,7 +32,7 @@ type (
 	Option   func(*options)
 
 	options struct {
-		source   []Source
+		sources  []Source
 		decoder  Decoder
 		resolver Resolver
 	}
@@ -40,7 +40,7 @@ type (
 
 func WithSource(s ...Source) Option {
 	return func(o *options) {
-		o.source = s
+		o.sources = s
 	}
 }
 

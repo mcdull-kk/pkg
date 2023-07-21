@@ -172,6 +172,14 @@ func configFileformat(ns string) constant.ConfigFileFormat {
 func format(ns string) string {
 	arr := strings.Split(ns, ".")
 	suffix := arr[len(arr)-1]
+	if len(arr) <= 1 || suffix == "properties" {
+		return "json"
+	}
+	fm := constant.ConfigFileFormat("." + suffix)
+	if fm != constant.JSON && fm != constant.YAML && fm != constant.XML && fm != constant.YML {
+		// fallback
+		return "json"
+	}
 	return suffix
 }
 

@@ -44,34 +44,33 @@ func (l *changeListener) OnNewestChange(_ *storage.FullChangeEvent) {}
 
 func (l *changeListener) OnChange(event *storage.ChangeEvent) {
 	kv := make([]*config.KeyValue, 0, 2)
-	ns := event.Namespace
-	fm := configFileformat(ns)
+	fm := configFileformat(event.Namespace)
 
 	if fm == constant.JSON || fm == constant.YML || fm == constant.YAML || fm == constant.XML {
-		value, err := l.apollo.client.GetConfigCache(ns).Get("content")
+		value, err := l.apollo.client.GetConfigCache(event.Namespace).Get("content")
 		if err != nil {
 			log.Warnw("apollo get config failed", "err", err)
 			return
 		}
 		kv = append(kv, &config.KeyValue{
-			Key:    ns,
+			Key:    event.Namespace,
 			Value:  []byte(value.(string)),
-			Format: format(ns),
+			Format: format(event.Namespace),
 		})
 	} else {
 		next := make(map[string]any)
 		for key, change := range event.Changes {
-			resolve(genKey(ns, key), change.NewValue, next)
+			resolve(genKey(event.Namespace, key), change.NewValue, next)
 		}
-		f := format(ns)
+		f := format(event.Namespace)
 		code := codec.GetCodec(f)
 		val, err := code.Marshal(next)
 		if err != nil {
-			log.Warnf("apollo could not handle namespace %s: %v", ns, err)
+			log.Warnf("apollo could not handle namespace %s: %v", event.Namespace, err)
 			return
 		}
 		kv = append(kv, &config.KeyValue{
-			Key:    ns,
+			Key:    event.Namespace,
 			Value:  val,
 			Format: f,
 		})
