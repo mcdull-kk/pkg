@@ -36,15 +36,11 @@ func Test_defaultDecoder(t *testing.T) {
 		{
 			keyValue: &KeyValue{
 				Key:    "service.name.alias",
-				Value:  []byte("2233333"),
+				Value:  []byte(`{"name":"alias"}`),
 				Format: "json",
 			},
 			want: map[string]interface{}{
-				"service": map[string]interface{}{
-					"name": map[string]interface{}{
-						"alias": []byte("2233333"),
-					},
-				},
+				"name": "alias",
 			},
 		},
 	}
@@ -56,4 +52,8 @@ func Test_defaultDecoder(t *testing.T) {
 			assert.Equal(t, tt.want, target)
 		})
 	}
+}
+
+func Test_defaultResolver(t *testing.T) {
+
 }
