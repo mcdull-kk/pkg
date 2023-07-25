@@ -59,6 +59,24 @@ func WithNamespace(namespace string) Option {
 	}
 }
 
+func WithEnableBackup() Option {
+	return func(o *apolloconfig.AppConfig) {
+		o.IsBackupConfig = true
+	}
+}
+
+func WithDisableBackup() Option {
+	return func(o *apolloconfig.AppConfig) {
+		o.IsBackupConfig = false
+	}
+}
+
+func WithBackupPath(backupPath string) Option {
+	return func(o *apolloconfig.AppConfig) {
+		o.BackupConfigPath = backupPath
+	}
+}
+
 func (parser extParser) Parse(configContent interface{}) (map[string]interface{}, error) {
 	return map[string]interface{}{"content": configContent}, nil
 }
