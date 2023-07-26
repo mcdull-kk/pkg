@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mcdull-kk/pkg/codec"
 	"github.com/mcdull-kk/pkg/config"
 	"github.com/mcdull-kk/pkg/log"
 	"github.com/stretchr/testify/assert"
@@ -31,8 +32,7 @@ func Test_file(t *testing.T) {
 	err = c.Scan(&val)
 	assert.Nil(t, err)
 
-	log.Info(val)
-	log.Infow("mucdull.age", c.Value("mucdull.age"))
+	assert.Equal(t, 2, int(codec.Int(c.Value("mucdull.age").Load())))
 
 	f, err := os.OpenFile(path, os.O_RDWR, 0)
 	assert.Nil(t, err)
@@ -42,6 +42,5 @@ func Test_file(t *testing.T) {
 	f.Close()
 
 	time.Sleep(10 * time.Millisecond)
-
-	log.Infow("mucdull.age", c.Value("mucdull.age"))
+	assert.Equal(t, 15, int(codec.Int(c.Value("mucdull.age").Load())))
 }
