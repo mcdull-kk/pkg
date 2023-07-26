@@ -10,6 +10,8 @@ import (
 	"github.com/mcdull-kk/pkg/log"
 )
 
+var _ config.Watcher = (*watcher)(nil)
+
 type (
 	watcher struct {
 		out <-chan []*config.KeyValue

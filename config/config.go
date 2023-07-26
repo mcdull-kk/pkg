@@ -98,6 +98,7 @@ func (c *config) Scan(v any) error {
 	if err != nil {
 		return err
 	}
+
 	return codec.GetCodec(codec.JsonName).Unmarshal(data, v)
 }
 

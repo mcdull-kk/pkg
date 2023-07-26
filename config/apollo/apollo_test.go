@@ -8,6 +8,35 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_apollo(t *testing.T) {
+	apolloConfig := config.New(
+		config.WithSource(
+			NewSource(false,
+				WithAppID("default"),
+				WithCluster("dev"),
+				WithIP("http://81.68.181.139:8080"), // https://github.com/apolloconfig/apollo/tree/master/docs/zh
+				WithNamespace("application,event.yaml,demo.json"),
+				WithEnableBackup(),
+				WithSecret("8ed2960af452403a813414fbf966230c"),
+			),
+		),
+	)
+
+	if err := apolloConfig.Load(); err != nil {
+		panic(err)
+	}
+
+	val := make(map[string]any)
+	err := apolloConfig.Scan(&val)
+	assert.Nil(t, err)
+
+	v := apolloConfig.Value("application")
+	log.Info(v)
+
+	v = apolloConfig.Value("application.server.port")
+	log.Info(v)
+}
+
 func Test_genKey(t *testing.T) {
 	type args struct {
 		ns  string
@@ -124,34 +153,4 @@ func Test_resolve(t *testing.T) {
 			assert.Equal(t, tt.want, target)
 		})
 	}
-}
-
-func Test_apollo(t *testing.T) {
-	apolloConfig := config.New(
-		config.WithSource(
-			NewSource(false,
-				WithAppID("default"),
-				WithCluster("dev"),
-				WithIP("http://81.68.181.139:8080"), // https://github.com/apolloconfig/apollo/tree/master/docs/zh
-				WithNamespace("application,event.yaml,demo.json"),
-				WithEnableBackup(),
-				WithSecret("8ed2960af452403a813414fbf966230c"),
-			),
-		),
-	)
-
-	if err := apolloConfig.Load(); err != nil {
-		panic(err)
-	}
-
-	val := make(map[string]any)
-	err := apolloConfig.Scan(&val)
-	assert.Nil(t, err)
-
-	v := apolloConfig.Value("application")
-	log.Info(v)
-
-	v = apolloConfig.Value("application.server.port")
-	log.Info(v)
-
 }
