@@ -19,7 +19,7 @@ type (
 		opt    *options
 	}
 
-	Option func(*apolloconfig.AppConfig)
+	Option func(*options)
 
 	options struct {
 		*apolloconfig.AppConfig
@@ -30,50 +30,56 @@ type (
 )
 
 func WithAppID(appID string) Option {
-	return func(o *apolloconfig.AppConfig) {
+	return func(o *options) {
 		o.AppID = appID
 	}
 }
 
 func WithIP(ip string) Option {
-	return func(o *apolloconfig.AppConfig) {
+	return func(o *options) {
 		o.IP = ip
 	}
 }
 
 func WithCluster(cluster string) Option {
-	return func(o *apolloconfig.AppConfig) {
+	return func(o *options) {
 		o.Cluster = cluster
 	}
 }
 
 func WithSecret(secret string) Option {
-	return func(o *apolloconfig.AppConfig) {
+	return func(o *options) {
 		o.Secret = secret
 	}
 }
 
 func WithNamespace(namespace string) Option {
-	return func(o *apolloconfig.AppConfig) {
+	return func(o *options) {
 		o.NamespaceName = namespace
 	}
 }
 
 func WithEnableBackup() Option {
-	return func(o *apolloconfig.AppConfig) {
+	return func(o *options) {
 		o.IsBackupConfig = true
 	}
 }
 
 func WithDisableBackup() Option {
-	return func(o *apolloconfig.AppConfig) {
+	return func(o *options) {
 		o.IsBackupConfig = false
 	}
 }
 
 func WithBackupPath(backupPath string) Option {
-	return func(o *apolloconfig.AppConfig) {
+	return func(o *options) {
 		o.BackupConfigPath = backupPath
+	}
+}
+
+func WithOriginConfig(originConfig bool) Option {
+	return func(o *options) {
+		o.originConfig = originConfig
 	}
 }
 
@@ -81,22 +87,28 @@ func (parser extParser) Parse(configContent interface{}) (map[string]interface{}
 	return map[string]interface{}{"content": configContent}, nil
 }
 
-func NewSource(originConfig bool, opts ...Option) config.Source {
-	op := &apolloconfig.AppConfig{}
+func NewSource(opts ...Option) config.Source {
+	opt := &options{
+		AppConfig:    &apolloconfig.AppConfig{},
+		originConfig: false,
+	}
 	for _, o := range opts {
-		o(op)
+		o(opt)
+	}
+
+	if opt.AppID == "" || opt.IP == "" || opt.NamespaceName == "" {
+		panic("appid or ip or namespaceName exist empty")
 	}
 
 	agollo.SetLogger(log.GetGlobalLogger())
 
 	client, err := agollo.StartWithConfig(func() (*apolloconfig.AppConfig, error) {
-		return op, nil
+		return opt.AppConfig, nil
 	})
 	if err != nil {
 		panic(err)
 	}
 
-	opt := &options{op, originConfig}
 	if opt.originConfig {
 		extension.AddFormatParser(constant.JSON, &extParser{})
 		extension.AddFormatParser(constant.Properties, &extParser{})

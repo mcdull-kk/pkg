@@ -11,7 +11,8 @@ import (
 func Test_apollo(t *testing.T) {
 	apolloConfig := config.New(
 		config.WithSource(
-			NewSource(false,
+			NewSource(
+				WithOriginConfig(false),
 				WithAppID("default"),
 				WithCluster("dev"),
 				WithIP("http://81.68.181.139:8080"), // https://github.com/apolloconfig/apollo/tree/master/docs/zh
