@@ -39,6 +39,10 @@ func (f *file) Watch() (config.Watcher, error) {
 	return newWatcher(f)
 }
 
+func (f *file) Close() (err error) {
+	return nil
+}
+
 func (f *file) loadDir(path string) (kvs []*config.KeyValue, err error) {
 	files, err := os.ReadDir(path)
 	if err != nil {

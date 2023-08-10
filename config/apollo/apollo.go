@@ -19,69 +19,8 @@ type (
 		opt    *options
 	}
 
-	Option func(*options)
-
-	options struct {
-		*apolloconfig.AppConfig
-		originConfig bool
-	}
-
 	extParser struct{}
 )
-
-func WithAppID(appID string) Option {
-	return func(o *options) {
-		o.AppID = appID
-	}
-}
-
-func WithIP(ip string) Option {
-	return func(o *options) {
-		o.IP = ip
-	}
-}
-
-func WithCluster(cluster string) Option {
-	return func(o *options) {
-		o.Cluster = cluster
-	}
-}
-
-func WithSecret(secret string) Option {
-	return func(o *options) {
-		o.Secret = secret
-	}
-}
-
-func WithNamespace(namespace string) Option {
-	return func(o *options) {
-		o.NamespaceName = namespace
-	}
-}
-
-func WithEnableBackup() Option {
-	return func(o *options) {
-		o.IsBackupConfig = true
-	}
-}
-
-func WithDisableBackup() Option {
-	return func(o *options) {
-		o.IsBackupConfig = false
-	}
-}
-
-func WithBackupPath(backupPath string) Option {
-	return func(o *options) {
-		o.BackupConfigPath = backupPath
-	}
-}
-
-func WithOriginConfig(originConfig bool) Option {
-	return func(o *options) {
-		o.originConfig = originConfig
-	}
-}
 
 func (parser extParser) Parse(configContent interface{}) (map[string]interface{}, error) {
 	return map[string]interface{}{"content": configContent}, nil
@@ -156,6 +95,11 @@ func (e *apollo) Load() (kv []*config.KeyValue, err error) {
 
 func (e *apollo) Watch() (config.Watcher, error) {
 	return newWatcher(e), nil
+}
+
+func (e *apollo) Close() (err error) {
+	e.client.Close()
+	return
 }
 
 func (e *apollo) getConfig(ns string) (*config.KeyValue, error) {

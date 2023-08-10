@@ -18,6 +18,7 @@ type (
 	Source interface {
 		Load() ([]*KeyValue, error)
 		Watch() (Watcher, error)
+		Close() (err error)
 	}
 
 	Watcher interface {

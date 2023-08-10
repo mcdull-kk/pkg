@@ -16,6 +16,13 @@ func Recover(cleanups ...func()) {
 	}
 
 	if p := recover(); p != nil {
-		log.Errorf("panic", fmt.Sprintf("%v\n%s", p, string(debug.Stack())))
+		log.Error("panic", fmt.Sprintf("%v\n%s", p, string(debug.Stack())))
 	}
+}
+
+func GoSafe(fn func()) {
+	go func() {
+		defer Recover()
+		fn()
+	}()
 }

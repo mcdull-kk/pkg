@@ -1,3 +1,4 @@
+//go:generate mockgen -package mock -destination config_mock.go -source etcdclient.go EtcdClient
 package config
 
 import (
@@ -10,6 +11,7 @@ import (
 
 	"github.com/mcdull-kk/pkg/codec"
 	"github.com/mcdull-kk/pkg/log"
+	"github.com/mcdull-kk/pkg/rescue"
 )
 
 var (
@@ -73,7 +75,7 @@ func (c *config) Load() error {
 			return err
 		}
 		c.watchers = append(c.watchers, w)
-		go c.watch(w)
+		c.watch(w)
 	}
 	if err := c.reader.Resolve(); err != nil {
 		log.Errorf("failed to resolve config source: %v", err)
@@ -120,35 +122,37 @@ func (c *config) Close() error {
 }
 
 func (c *config) watch(w Watcher) {
-	for {
-		kvs, err := w.Next()
-		if err != nil {
-			if errors.Is(err, context.Canceled) {
-				log.Infof("watcher's ctx cancel : %v", err)
-				return
-			}
-			time.Sleep(time.Second)
-			log.Errorf("failed to watch next config: %v", err)
-			continue
-		}
-		if err := c.reader.Merge(kvs...); err != nil {
-			log.Errorf("failed to merge next config: %v", err)
-			continue
-		}
-		if err := c.reader.Resolve(); err != nil {
-			log.Errorf("failed to resolve next config: %v", err)
-			continue
-		}
-		c.cached.Range(func(key, value interface{}) bool {
-			k := key.(string)
-			v := value.(*atomic.Value)
-			if n, ok := c.reader.Value(k); ok && reflect.TypeOf(n.Load()) == reflect.TypeOf(v.Load()) && !reflect.DeepEqual(n.Load(), v.Load()) {
-				v.Store(n.Load())
-				if o, ok := c.observers.Load(k); ok {
-					o.(Observer)(k, v)
+	rescue.GoSafe(func() {
+		for {
+			kvs, err := w.Next()
+			if err != nil {
+				if errors.Is(err, context.Canceled) {
+					log.Infof("watcher's ctx cancel : %v", err)
+					return
 				}
+				time.Sleep(time.Second)
+				log.Errorf("failed to watch next config: %v", err)
+				continue
 			}
-			return true
-		})
-	}
+			if err := c.reader.Merge(kvs...); err != nil {
+				log.Errorf("failed to merge next config: %v", err)
+				continue
+			}
+			if err := c.reader.Resolve(); err != nil {
+				log.Errorf("failed to resolve next config: %v", err)
+				continue
+			}
+			c.cached.Range(func(key, value interface{}) bool {
+				k := key.(string)
+				v := value.(*atomic.Value)
+				if n, ok := c.reader.Value(k); ok && reflect.TypeOf(n.Load()) == reflect.TypeOf(v.Load()) && !reflect.DeepEqual(n.Load(), v.Load()) {
+					v.Store(n.Load())
+					if o, ok := c.observers.Load(k); ok {
+						o.(Observer)(k, v)
+					}
+				}
+				return true
+			})
+		}
+	})
 }
